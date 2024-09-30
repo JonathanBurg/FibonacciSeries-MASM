@@ -20,6 +20,7 @@ extern  writeNumber: near
 	prompt			byte	10,"Please enter max number (<45): ", 0 ; ends with string terminator (NULL or 0)
 	msg				byte	10,"Fibonacci Series: ", 10, 0 ; ends with string terminator (NULL or 0)
 	results         byte	10,"You typed: ", 0
+	input			dword	?
 	numCharsToRead  dword	1024
 	bufferAddr		dword	?
 
@@ -73,7 +74,7 @@ findInput PROC near
 _findInput:
 	 ; Read what the user inputed
 	call  readLine
-
+	mov input, eax
 	; Prints input back to user
     ; writeline(&results[0], 12)
     mov   bufferAddr, eax
@@ -91,7 +92,7 @@ _findInput:
 	push  ebx ; Base data
 	push  edx ; Destination register
 
-	mov  ebx, eax
+	mov  ebx, input
 atoi: ; Zero result found so far
 	xor  edx, edx
 
@@ -175,6 +176,10 @@ top:
 	jmp	  top	; Until done
 
 exit:
+	push itr
+	call writeNumber
+	push var3
+	call writeNumber
 	ret
 
 printSeries ENDP
