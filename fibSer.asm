@@ -191,7 +191,6 @@ _iterater:
     mov   var2, eax   ; writeNumber
     push  eax
     call  writeNumber
-	pop	  eax
     
     inc   itr
 

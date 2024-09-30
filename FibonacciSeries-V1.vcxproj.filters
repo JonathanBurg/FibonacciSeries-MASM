@@ -33,8 +33,5 @@
     <MASM Include="fibSer.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="start-1.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
   </ItemGroup>
 </Project>
