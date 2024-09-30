@@ -1,10 +1,13 @@
 ; Main Console program
 ; Wayne Cook
-; 20 September 2024
+; 10 March 2024
 ; Show how to do input and output
 ; Revised: WWC 14 March 2024 Added new module
 ; Revised: WWC 15 March 2024 Added this comment ot force a new commit.
-; Revised: WWC 13 September 2024 Minore updates for Fall 2024 semester.
+; Revised: WWC 13 September 2024 Minor updates for Fall 2024 semester.
+; Revised: WWC 23 September 2024 Split to have main, utils, & program.
+; Revised: Jonathan Burgener, 30 September 2024, Added module for 
+;                                       reading a number from input
 ; Register names:
 ; Register names are NOT case sensitive eax and EAX are the same register
 ; x86 uses 8 registers. EAX (Extended AX register has 32 bits while AX is
@@ -85,13 +88,13 @@ readline ENDP
 charCount PROC near
 _charCount:
     pop  edx                        ; Save return address
-    pop  ebx                        ; saqve offset/address of string
+    pop  ebx                        ; save offset/address of string
     push edx                        ; Put return address back on the stack
     mov  eax,0                      ; load counter to 0
     mov  ecx,0                      ; Clear ECX register
 _countLoop:
     mov  cl,[ebx]                   ; Look at the character in the string
-    cmp  ecx,0                      ; check for end of string.
+    cmp  cl,0                       ; check for end of string.
     je   _endCount
     inc  eax                        ; Up the count by one
     inc  ebx                        ; go to next letter
@@ -120,44 +123,69 @@ _writeline:
     ret
 writeline ENDP
 
-; For all routines, the last item to be pushed on the stack is the return address, save it to a register
-; then save any other expected parameters in registers, then restore the return address to the stack.
+; writeNumber - print the ASCII value of a number.
+; To help callers, I will save all registers. This routine will show the official
+;  way to handle the stack and base pointers. It is less effecient, but it
+;  preserves all registers.
+
 writeNumber PROC near
 _writeNumber:
-    pop   edx                        ; pop return address from the stack into EDX
-    pop   eax                        ; Pop the number to be written.
-    push  edx                        ; Restore return address to the stack
-    mov   ecx, 10                    ; Set the divisor to ten
-    mov   esi, 0                     ; Count number of numbers written
+    ; Subroutine Prologue
+    push ebp            ; Save the old base pointer value.
+    mov ebp, esp        ; Set the new base pointer value to access parameters
+    sub esp, 4          ; Make room for one 4-byte local variable, if needed
+    push edi            ; Save the values of registers that the function
+    push esi            ; will modify. This function uses EDI and ESI.
+    ; The eax, ebx, ecx, edx registers do not need to be saved,
+    ;      but they are for the sake of the calling routine.
+    push eax            ; Only save if not used as a return value
+    push ebx            ; Ditto
+    push ecx            ; Ditto
+    push edx            ; Ditto
+    ; Subroutine Body
+    mov eax, [ebp+8]    ; Move value of parameter 1 into EAX
+    mov   ecx, 10       ; Set the divisor to ten
+    mov   esi, 0        ; Count number of numbers written
     mov   ebx, offset numberBuffer   ; Save the start of the write buffer
 ;; The dividend is place in eax, then divide by ecx, the result goes into eax, with the remiander in edx
 genNumLoop:
-    cmp   eax, 0                     ; Stop when the nubmer is 0
+    cmp   eax, 0        ; Stop when the nubmer is 0
     jle   endNumLoop
-    mov   edx, 0                     ; Clear the register for the remainder
-    div   ecx                        ; Do the divide
-    add   dx,'0'                     ; Turn the remainer into an ASCII number
-    push  dx                         ; Now push the remainder onto the stack
-    inc   esi                        ; increment number count
-    jmp   genNumLoop                 ; One more time.
+    mov   edx, 0        ; Clear the register for the remainder
+    div   ecx           ; Do the divide
+    add   dx,'0'        ; Turn the remainer into an ASCII number
+    push  dx            ; Now push the remainder onto the stack
+    inc   esi           ; increment number count
+    jmp   genNumLoop    ; One more time.
 endNumLoop:
     cmp   esi,0
     jle   numExit
     pop   dx
-    mov   [ebx], dx                  ; Add the number to the output sring
-    dec   esi                        ; Get ready for the next number
-    inc   ebx                        ; Go to the next character
-    jmp   endNumLoop                 ; Do it one more time
+    mov   [ebx], dx     ; Add the number to the output sring
+    dec   esi           ; Get ready for the next number
+    inc   ebx           ; Go to the next character
+    jmp   endNumLoop    ; Do it one more time
     
 numExit:
-    mov   dx, ' '                    ; cannot load a literal into an addressed location
-    mov   [ebx], dx                  ; Add a space to the end of the number
-    mov   [ebx+1], esi               ; Add the number to the output sring
+    mov   dx, ' '       ; cannot load a literal into an addressed location
+    mov   [ebx], dx     ; Add a space to the end of the number
+    mov   [ebx+1], esi  ; Add the number to the output sring
     push  offset numberBuffer
     call  charCount
     push  eax
     push  offset numberBuffer
     call  writeline
+    ; If eax is used as a return value, make sure it is loaded by now.
+    ; And restore all saved registers
+    ; Subroutine Epilogue
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    pop esi ; Recover register values
+    pop edi
+    mov esp, ebp ; Deallocate local variables
+    pop ebp ; Restore the caller's base pointer value
     ret
     
 writeNumber ENDP
