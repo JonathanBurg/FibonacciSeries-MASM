@@ -20,6 +20,7 @@ extern writeNumber: near
 	var2			DD	 ? ; second number to add
 	var3			DD	 ? ; term to stop at: From user input
 	itr				DD	 ? ; current term of the series
+	temp			byte ? ; temporarily store a byte
 	prompt			byte "Please enter max number (<45): ", 0 ; ends with string terminator (NULL or 0)
 	results         byte  10,"You typed: ", 0
 	numCharsToRead  dword 1024
@@ -43,8 +44,7 @@ top:
 
 	 ; Read user input
 	call findInput
-	
-	;mov eax, 10
+	mov eax, var3
 	 ; If input is 0, return
 	cmp  eax, 0
 	jle  exit
@@ -118,13 +118,28 @@ _findInput:
     push  bufferAddr
     call  writeline
 
-atoi: ; zero result found so far
+	push ecx ; Preserve working registers
+	push edx
 
-	; Start loop to parse input
-top:
-	;atoi:
-	;xor eax, eax ; zero a "result so far"
-	;.top:
+	xor ecx, ecx
+	mov edx, eax
+atoi: ; Zero result found so far
+	xor eax, eax
+
+top: ; Start loop to parse input
+	mov cl, dl ; Get a character
+	inc  edx
+	cmp  ecx, '0'
+	jb   fin
+	cmp  ecx, '9'
+	ja   fin
+	sub  ecx, '9'
+	ja   fin
+	sub  ecx, '0' ; Cast character to number
+	imul eax, 10
+	add	 eax, ecx 
+	jmp  top ; Until done
+
 	;movzx ecx, byte [edx] ; get a character
 	;inc edx ; ready for next one
 	;cmp ecx, '0' ; valid?
@@ -135,8 +150,14 @@ top:
 	;imul eax, 10 ; multiply "result so far" by ten
 	;add eax, ecx ; add in current digit
 	;jmp .top ; until done
-	;.done:
-	;ret
+	
+fin:
+	pop edx
+	pop ecx
+	mov var3, eax
+	push eax
+	call writeNumber
+	ret ; Return to getNumber
 
 findInput ENDP
 
