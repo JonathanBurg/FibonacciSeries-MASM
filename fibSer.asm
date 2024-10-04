@@ -42,8 +42,9 @@ top:
 
 	 ; Read user input
 	call  findInput
-	mov   eax, var3
 
+	push eax
+	call writeNumber
 	;push eax
 	;call writeNumber
 	;mov eax, var3
@@ -60,7 +61,6 @@ done:
 	push eax
 	call writeNumber
 	call printSeries
-	ret
 	
 	 ; Return to start
 exit:
@@ -92,7 +92,7 @@ _findInput:
 	push  ebx ; Base data
 	push  edx ; Destination register
 
-	mov  ebx, input
+	mov  ebx, offset input
 atoi: ; Zero result found so far
 	xor  edx, edx
 
@@ -130,6 +130,7 @@ fin:
 	pop  ebx
 	pop  ecx
 
+	mov eax, var3
 	ret ; Return to getNumber
 
 findInput ENDP
