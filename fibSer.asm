@@ -43,6 +43,7 @@ top:
 	 ; Read user input
 	call  findInput
 
+	mov eax, var3
 	push eax
 	call writeNumber
 	;push eax
@@ -58,8 +59,6 @@ top:
 
 	 ; Move to printing series
 done:
-	push eax
-	call writeNumber
 	call printSeries
 	
 	 ; Return to start
@@ -72,10 +71,24 @@ getNumber ENDP
  ; Routine to get user input and convert it to an integer
 findInput PROC near
 _findInput:
+	 ; Store working registers
+	push  eax
+	push  ebx
+	push  ecx
+	push  edx
+	push  esi
+	xor   eax, eax
+	xor   ebx, ebx
+	xor   ecx, ecx
+	xor   edx, edx
+	xor   esi, esi
+
 	 ; Read what the user inputed
+top:
 	call  readLine
 	mov input, eax
-	; Prints input back to user
+	
+	; Print input back to user
     ; writeline(&results[0], 12)
     mov   bufferAddr, eax
     push  offset results
@@ -87,52 +100,64 @@ _findInput:
     push  bufferAddr
     call  writeline
 
-	 ; Preserve working registers
-	push  ecx ; Current character
-	push  ebx ; Base data
-	push  edx ; Destination register
+	; Check length of input
+	mov   eax, offset input
+	push  eax
+	call  charCount
+	cmp   eax, 3
+	jg	  top
 
-	mov  ebx, offset input
-atoi: ; Zero result found so far
-	xor  edx, edx
-
-top: ; Start loop to parse input
-	xor   ecx, ecx 	; Clear ECX
-	movzx ecx, bl 	; Get a character
-	inc   ebx		; Increment base value
-	cmp   cl, '0'	
-	jb    fin		; Does the character precede '0'?
-	cmp   cl, '9'	
-	ja    fin		; Does the character follow '9'?
-	sub   cl, '0'	; Cast character to number
-	imul  edx, 10	; Shift saved digits to the left
-	add	  edx, ecx	; Add new digit to number
-	jmp   top		; Until done
-
-	;movzx ecx, byte [edx] ; get a character
-	;inc edx ; ready for next one
-	;cmp ecx, '0' ; valid?
-	;jb .done
-	;cmp ecx, '9'
-	;ja .done
-	;sub ecx, '0' ; "convert" character to number
-	;imul eax, 10 ; multiply "result so far" by ten
-	;add eax, ecx ; add in current digit
-	;jmp .top ; until done
+	; Convert string to an integer
 	
+
+	mov esi, offset input
+	cmp byte ptr [esi],'-'
+
+	je negative		;if input ='s a - then jump to negative.
+	mov ch, 0		;ch=0, a flag for positive
+	jmp convert		; if positive then jump to convert.
+
+negative:
+	mov ch,1		;ch =1, a flag for negative
+	inc esi			; esi -> the first digit char
+	convert:
+	mov al,[esi]	;al = first digit char
+	sub al,48		; subtracts al by 48 first digit
+	movzx eax,al	;al=>eax, unsigned
+	mov ebx,10		;ebx=>10, the multiplier
+
+next:
+	inc esi					;what's next?
+	cmp byte ptr [esi], '0'	;end of string
+	jl fin					; if finished store result in var3
+	cmp byte ptr [esi], '9' 
+	jg fin
+
+	mul ebx					;else, eax*ebx==>edx eax
+	mov dl,[esi]			;dl = next byte
+	sub dl,48				;dl=next digit
+	movzx edx,dl			;dl => edx, unsigned
+	add eax,edx
+	jmp next
+
 fin:
-	mov   var3, edx
-	push  edx
-	call  writeNumber
-	
-	 ; Restore working data
-	pop  edx
-	pop  ebx
-	pop  ecx
+	cmp ch, 1				; a negative number?
+	je changeToNeg
+	jmp storeResult
 
-	mov eax, var3
-	ret ; Return to getNumber
+changeToNeg:
+	neg eax
+storeResult:
+	mov var3,eax
 
+	 ; Restore working registers
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+
+	ret 		; Return to getNumber
 findInput ENDP
 
 
