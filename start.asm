@@ -30,15 +30,15 @@ extern  getNumber:   near
 
 .data
 
-num1            DD    ? ; first number for each iteration
-num2            DD    ? ; second number for each iteration
-itr             DD    ? ; iterator to make sure only 45 terms are printed
-msg             byte  "Hello, World", 10, 0   ; ends with line feed (10) and NULL
-prompt          byte  "Fibonacci Series: ", 10, 0 ; ends with string terminator (NULL or 0)
-endln           byte  "    ", 10, 0
-results         byte  ? ; buffer to print vars
-numCharsToRead  dword 1024
-bufferAddr      dword ?
+num1            DD      ? ; first number for each iteration
+num2            DD      ? ; second number for each iteration
+itr             DD      ? ; iterator to make sure only 45 terms are printed
+msg             byte    "Hello, World", 10, 0                         ; ends with line feed (10) and NULL
+prompt          byte    "Fibonacci Series (First 45 terms): ", 10, 0  ; ends with string terminator (NULL or 0)
+endln           byte    "    ", 10, 0
+results         byte    ? ; buffer to print vars
+numCharsToRead  dword   1024
+bufferAddr      dword   ?
 
 .code
 

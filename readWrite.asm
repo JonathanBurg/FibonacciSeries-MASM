@@ -3,8 +3,9 @@
 ; 20 September 2024
 ; Show how to do input and output
 ; Revised: WWC 14 March 2024 Added new module
-; Revised: WWC 15 March 2024 Added this comment ot force a new commit.
-; Revised: WWC 13 September 2024 Minore updates for Fall 2024 semester.
+; Revised: WWC 15 March 2024 Added this comment to force a new commit.
+; Revised: WWC 13 September 2024 Minor updates for Fall 2024 semester.
+; Revises: JB   7 October 2024 - Added module for a new line
 ; Register names:
 ; Register names are NOT case sensitive eax and EAX are the same register
 ; x86 uses 8 registers. EAX (Extended AX register has 32 bits while AX is
@@ -31,14 +32,15 @@ extern  _ExitProcess@4: near
 
 .data
 
-msg             byte  "Hello, World", 10, 0   ; ends with line feed (10) and NULL
-prompt          byte  "Please type your name: ", 0 ; ends with string terminator (NULL or 0)
-results         byte  10,"You typed: ", 0
-outputHandle    dword ?           ; Output handle writing to consol. uninitslized
-inputHandle     dword ?           ; Input handle reading from consolee. uninitslized
-written         dword ?
-INPUT_FLAG      equ   -10
-OUTPUT_FLAG     equ   -11
+msg             byte    "Hello, World", 10, 0   ; ends with line feed (10) and NULL
+prompt          byte    "Please type your name: ", 0 ; ends with string terminator (NULL or 0)
+results         byte    10,"You typed: ", 0
+newLine			byte    10,0	; Starts a new line
+outputHandle    dword   ?       ; Output handle writing to consol. uninitslized
+inputHandle     dword   ?       ; Input handle reading from consolee. uninitslized
+written         dword   ?
+INPUT_FLAG      equ     -10
+OUTPUT_FLAG     equ     -11
 
 ; Reading and writing requires buffers. I fill them with 00h.
 readBuffer      byte  1024        DUP(00h)
@@ -119,6 +121,18 @@ _writeline:
     call   _WriteConsoleA@20
     ret
 writeline ENDP
+
+; Writes a line break
+writeln PROC near
+_writeln:
+    ; Create new line
+	push  offset newLine
+    call  charCount
+    push  eax
+    push  offset newLine
+    call  writeline
+    ret
+writeln ENDP
 
 ; For all routines, the last item to be pushed on the stack is the return address, save it to a register
 ; then save any other expected parameters in registers, then restore the return address to the stack.
