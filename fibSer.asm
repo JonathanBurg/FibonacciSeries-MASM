@@ -2,6 +2,8 @@
  ; Jonathan Burgener
  ; Monday, 30 September, 2024
  ; Prints the numbers in the Fibonacci Series up to a user-inputted number.
+ ;
+ ; Revised: JB, 7 October, 2024 - Finally got a reliable way to convert a string to an int
 
 .model  flat
 
@@ -44,7 +46,7 @@ top:
 	 ; check that the number is less than 45
 	mov	 eax, var3
 	cmp	 eax, 45
-	jge	 top
+	jg	 top
 	cmp  eax, 0
 	jl	 top
 	jmp	 done
@@ -63,20 +65,18 @@ getNumber ENDP
  ; Routine to get user input and convert it to an integer
 findInput PROC near
 _findInput:
+	 ;	Source of delay in completion, was struggling to find a way to
+	 ;		reliably convert a string to an integer
 	 ; Store working registers
 	push  eax
 	push  ebx
 	push  ecx
 	push  edx
-	push  esi
 	xor   eax, eax
 	xor   ebx, ebx
 	xor   ecx, ecx
 	xor   edx, edx
-	xor   esi, esi
 
-	 ; Read what the user inputed
-top:
 	; Type a prompt for the user
      ; WriteConsole(handle, &Prompt[0], 17, &written, 0)
 	push  offset prompt
@@ -85,98 +85,54 @@ top:
     push  offset prompt
     call  writeline
 
-	mov eax, 0
-	mov var3, 0
-	mov input, '0'
-	call  readLine
-	mov input, eax
+	call  readline
+	mov   ecx, eax
 
-		; Print input back to user
-    ; writeline(&results[0], 12)
-    ;mov   bufferAddr, eax
-    ;push  offset results
-    ;call  charCount
-    ;push  eax
-    ;push  offset results
-    ;call  writeline
-    ;push  numCharsToRead
-    ;push  bufferAddr
-    ;call  writeLine
+ ; Take what was read and convert to a number
+    mov   eax, 0                ; Initialize the number
+    mov   ebx, 0                ; Make sure upper bits are all zero.
+    
+findNumberLoop:
+    mov   bl, [ecx]      ; Load the low byte of the EBX reg with the next ASCII character.
+    cmp   bl, '9'               ; Make sure it is not too high
+    jg   endNumberLoop
+    sub   bl, '0'               
+    cmp   bl, 0                 ; or too low
+    jl    endNumberLoop
+    mov   edx, 10              ; save multiplier for later need
+    mul   edx
+    add   eax, ebx
+    inc   ecx                   ; Go to next location in number
+    jmp   findNumberLoop
 
-	; Check length of input
-	mov   eax, input
-	push  eax
-	call  charCount
-	push  eax
-	push eax
-	push  eax
-	call  writeNumber
-	mov	  eax, input
-	push eax
-	call writeLine
-	pop   eax
-	cmp   eax, 4
-	jg	  top
+ endNumberLoop:
+	 ; var3 has the new integer when the code completes. And ) if no digits found.
+	mov var3, eax
 
-	
-
-	; Convert string to an integer
-	
-
-	mov esi, offset input
-	cmp byte ptr [esi],'-'
-
-	je negative		;if input ='s a - then jump to negative.
-	mov ch, 0		;ch=0, a flag for positive
-	jmp convert		; if positive then jump to convert.
-
-negative:
-	mov ch,1		;ch =1, a flag for negative
-	inc esi			; esi -> the first digit char
-	convert:
-	mov al,[esi]	;al = first digit char
-	sub al,48		; subtracts al by 48 first digit
-	movzx eax,al	;al=>eax, unsigned
-	mov ebx,10		;ebx=>10, the multiplier
-
-next:
-	inc esi					;what's next?
-	cmp byte ptr [esi], '0'	;end of string
-	jl fin					; if finished store result in var3
-	cmp byte ptr [esi], '9' 
-	jg fin
-
-	mul ebx					;else, eax*ebx==>edx eax
-	mov dl,[esi]			;dl = next byte
-	sub dl,48				;dl=next digit
-	movzx edx,dl			;dl => edx, unsigned
-	add eax,edx
-	jmp next
-
-fin:
-	cmp ch, 1				; a negative number?
-	je changeToNeg
-	jmp storeResult
-
-changeToNeg:
-	neg eax
-storeResult:
-	mov var3,eax
-
-	 ; Restore working registers
-	pop esi
+	; Restore working registers
 	pop edx
 	pop ecx
 	pop ebx
 	pop eax
 
-	ret 		; Return to getNumber
+	; Return to getNumber
+	ret
 findInput ENDP
 
 
  ; Prints the Fibonacci Series
 printSeries PROC near
 _printSeries:
+	cmp   var3, 0
+	jl    invalidlimit
+	je    exit
+	cmp   var3, 45
+	jg    invalidlimit
+	mov   eax, var3
+	;push eax
+	;call writeNumber
+print:
+
 	; Type a message for the user
     ; WriteConsole(handle, &Prompt[0], 17, &written, 0)
     push  offset msg
@@ -185,30 +141,21 @@ _printSeries:
     push  offset msg
     call  writeline
 
-	cmp  var3, 0
-	jle  invalidlimit
-	cmp  var3, 45
-	jg   invalidlimit
-	mov  eax, var3
-	;push eax
-	;call writeNumber
-print:
-
 	 ; Write first two terms
-	mov  var1, 1
-	mov  var2, 2
+	mov   var1, 1
+	mov   var2, 2
 
-	;mov   eax, var1
-	;push  eax
-	;call  writeNumber
-	;cmp	  var3, 1
-	;je	  exit
+	mov   eax, var1
+	push  eax
+	call  writeNumber
+	cmp	  var3, 1
+	je	  exit
 
-	;mov	  eax, var2
-	;push  eax
-	;call  writeNumber
-	;cmp   var3, 2
-	;je	  exit
+	mov	  eax, var2
+	push  eax
+	call  writeNumber
+	cmp   var3, 2
+	je	  exit
 
 	mov	  itr, 2
 
