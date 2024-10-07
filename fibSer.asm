@@ -32,25 +32,17 @@ _getNumber:
 
 	; loop to make sure inputted number is less than 45
 top:
-	 ; Type a prompt for the user
-     ; WriteConsole(handle, &Prompt[0], 17, &written, 0)
-	push  offset prompt
-    call  charCount
-    push  eax
-    push  offset prompt
-    call  writeline
-
 	 ; Read user input
 	call  findInput
 
-	mov eax, var3
-	push eax
-	call writeNumber
+	;mov eax, var3
+	;push eax
+	;call writeNumber
 	;push eax
 	;call writeNumber
 	;mov eax, var3
 	 ; check that the number is less than 45
-	mov	 var3, eax
+	mov	 eax, var3
 	cmp	 eax, 45
 	jge	 top
 	cmp  eax, 0
@@ -85,27 +77,48 @@ _findInput:
 
 	 ; Read what the user inputed
 top:
-	call  readLine
-	mov input, eax
-	
-	; Print input back to user
-    ; writeline(&results[0], 12)
-    mov   bufferAddr, eax
-    push  offset results
+	; Type a prompt for the user
+     ; WriteConsole(handle, &Prompt[0], 17, &written, 0)
+	push  offset prompt
     call  charCount
     push  eax
-    push  offset results
-    call  writeline
-    push  numCharsToRead
-    push  bufferAddr
+    push  offset prompt
     call  writeline
 
+	mov eax, 0
+	mov var3, 0
+	mov input, '0'
+	call  readLine
+	mov input, eax
+
+		; Print input back to user
+    ; writeline(&results[0], 12)
+    ;mov   bufferAddr, eax
+    ;push  offset results
+    ;call  charCount
+    ;push  eax
+    ;push  offset results
+    ;call  writeline
+    ;push  numCharsToRead
+    ;push  bufferAddr
+    ;call  writeLine
+
 	; Check length of input
-	mov   eax, offset input
+	mov   eax, input
 	push  eax
 	call  charCount
-	cmp   eax, 3
+	push  eax
+	push eax
+	push  eax
+	call  writeNumber
+	mov	  eax, input
+	push eax
+	call writeLine
+	pop   eax
+	cmp   eax, 4
 	jg	  top
+
+	
 
 	; Convert string to an integer
 	
@@ -172,21 +185,30 @@ _printSeries:
     push  offset msg
     call  writeline
 
+	cmp  var3, 0
+	jle  invalidlimit
+	cmp  var3, 45
+	jg   invalidlimit
+	mov  eax, var3
+	;push eax
+	;call writeNumber
+print:
+
 	 ; Write first two terms
 	mov  var1, 1
 	mov  var2, 2
 
-	mov   eax, var1
-	push  eax
-	call  writeNumber
-	cmp	  var3, 1
-	je	  exit
+	;mov   eax, var1
+	;push  eax
+	;call  writeNumber
+	;cmp	  var3, 1
+	;je	  exit
 
-	mov	  eax, var2
-	push  eax
-	call  writeNumber
-	cmp   var3, 2
-	je	  exit
+	;mov	  eax, var2
+	;push  eax
+	;call  writeNumber
+	;cmp   var3, 2
+	;je	  exit
 
 	mov	  itr, 2
 
@@ -202,11 +224,15 @@ top:
 	jmp	  top	; Until done
 
 exit:
-	push itr
-	call writeNumber
-	push var3
-	call writeNumber
+	;push itr
+	;call writeNumber
+	;push var3
+	;call writeNumber
 	ret
+
+invalidlimit:
+	mov var3, 45
+	jp print
 
 printSeries ENDP
 
