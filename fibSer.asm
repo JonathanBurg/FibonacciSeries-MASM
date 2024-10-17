@@ -15,6 +15,7 @@ extern  writeNumber: near
 extern	writeln:	 near
 extern	readInt:	 near
 
+
 .data
 
 	var1			DD		? ; first number to add
@@ -29,6 +30,7 @@ extern	readInt:	 near
 	input			dword	?
 	numCharsToRead	dword	1024
 	bufferAddr		dword	?
+
 
 .code
 
@@ -49,18 +51,16 @@ _getNumber:
  ; loop to make sure inputted number is less than 45
 top:
 	 ; Read user input
-	;call  findInput
 	push  offset prompt
 	call  readInt
 	mov   var3, eax
 
 	 ; check that the number is less than 45
-	mov	 eax, var3
-	cmp	 eax, 45
-	jg	 invalidInput
-	cmp  eax, 0
-	jl	 invalidInput
-	jmp	 done
+	cmp   eax, 45
+	jg    invalidInput
+	cmp   eax, 0
+	jl    invalidInput
+	jmp   done
 	
  ; Move to printing series
 done:
@@ -142,7 +142,6 @@ exit:
 invalidlimit:
 	mov var3, 45
 	jp print
-
 printSeries ENDP
 
 
@@ -172,4 +171,5 @@ _iterater:
 	 ; Return to printSeries
 	ret
 iterater ENDP
+
 END 
