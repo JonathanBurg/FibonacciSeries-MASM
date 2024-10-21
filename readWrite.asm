@@ -38,6 +38,7 @@ msg				byte	"Hello, World", 10, 0			; ends with line feed (10) and NULL
 prompt			byte	"Please type your name: ", 0	; ends with string terminator (NULL or 0)
 results			byte	10,"You typed: ", 0
 newLine			byte	10,0	; Starts a new line
+space			byte	" ",0	; Creates a space
 inputPrompt		dword	?		; Prompt for user input
 outputHandle	dword	?		; Output handle writing to consol. uninitslized
 inputHandle		dword	?		; Input handle reading from consolee. uninitslized
@@ -157,8 +158,13 @@ writeline PROC near
 _writeline:
 	pop   edx					; pop return address from the stack into EDX
 	pop   ebx					; Pop the buffer location of string to be printed into EBX
-	pop   eax					; Pop the buffer size string to be printed into EAX.
+	;pop   eax					; Pop the buffer size string to be printed into EAX.
 	push  edx					; Restore return address to the stack
+
+	push  ebx
+	push  ebx
+	call  charCount
+	pop   ebx
 
 	 ; WriteConsole(handle, &msg[0], numCharsToWrite, &written, 0)
 	push  0
@@ -183,9 +189,9 @@ writeln PROC near
 _writeln:
 	push  eax					; Save EAX
 	 ; Create new line
-	push  offset newLine		; Push string with line feed (10) and NULL
-	call  charCount
-	push  eax
+	;push  offset newLine		; Push string with line feed (10) and NULL
+	;call  charCount
+	;push  eax
 	push  offset newLine
 	call  writeline
 	pop   eax					; Restore EAX
@@ -194,7 +200,23 @@ writeln ENDP
 
 
 ;;******************************************************************;
-;; Call writeNumber(number)
+;; Call writeSp()
+;; Parameters:		None
+;; Returns:			Nothing
+;; Registers Used:	None
+;; 
+;; Writes a space to the console
+;;******************************************************************;
+writeSp PROC near
+_writeSp:
+	push  offset space
+	call  writeline
+	ret
+writeSp ENDP
+
+
+;;******************************************************************;
+;; Call writeNum(number)
 ;; Parameters:		number - Value to write to console
 ;; Returns:			Nothing
 ;; Registers Used:	EAX, EBX (s), ECX (s), EDX, ESI (s)
@@ -204,8 +226,8 @@ writeln ENDP
 ;; expected parameters in registers, then restore the return address
 ;; to the stack.
 ;;******************************************************************;
-writeNumber PROC near
-_writeNumber:
+writeNum PROC near
+_writeNum:
 	pop   edx					; pop return address from the stack into EDX
 	pop   eax					; Pop the number to be written.
 	push  edx					; Restore return address to the stack
@@ -238,18 +260,38 @@ endNumLoop:
 	jmp   endNumLoop			; Do it one more time
 	
 numExit:
-	mov   dx, ' '				; cannot load a literal into an addressed location
+	mov   dx, 0				; cannot load a literal into an addressed location
 	mov   [ebx], dx				; Add a space to the end of the number
 	mov   [ebx+1], esi			; Add the number to the output sring
-	push  offset numberBuffer
-	call  charCount
-	push  eax
+	;push  offset numberBuffer
+	;call  charCount
+	;push  eax
 	push  offset numberBuffer
 	call  writeline
 	 ; Restore working registers
 	pop   esi
 	pop   ecx
 	pop   ebx
+	ret
+writeNum ENDP
+
+;;******************************************************************;
+;; Call writeNumber(number)
+;; Parameters:		number - Value to write to console
+;; Returns:			Nothing
+;; Registers Used:	EAX, EDX
+;; 
+;; Writes number then writes a space after
+;;******************************************************************;
+writeNumber PROC near
+_writeNumber:
+	pop   edx
+	pop   eax
+	push  edx
+
+	push  eax
+	call  writeNum
+	call  writeSp
 	ret
 writeNumber ENDP
 
@@ -279,9 +321,9 @@ _readInt:
 	xor   edx, edx
 
 	 ; Type a prompt for the user
-	push  inputPrompt
-	call  charCount
-	push  eax
+	;push  inputPrompt
+	;call  charCount
+	;push  eax
 	push  inputPrompt
 	call  writeline
 
@@ -328,7 +370,10 @@ readInt ENDP
 ;;******************************************************************;
 intStr PROC near
 _intStr:
-	pop   esi
+	pop   edx					; Store return address in EDX
+	pop   eax					; Store number in EAX
+	push  edx					; Restore return address to stack
+
 intStr ENDP
 
 END

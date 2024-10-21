@@ -22,11 +22,11 @@
 
 .model flat
 
-extern  writeline:	 near
-extern  readline:	 near
-extern  charCount:	 near
-extern  writeNumber: near
-extern  getNumber:	 near
+extern	writeline:	 near
+extern	readline:	 near
+extern	charCount:	 near
+extern	writeNumber: near
+extern	getNumber:	 near
 
 
 .data
@@ -57,9 +57,9 @@ start PROC near
 _start:
 	 ; Type a message for the user
 	 ; WriteConsole(handle, &Prompt[0], 17, &written, 0)
-	push  offset prompt
-	call  charCount
-	push  eax
+	;push  offset prompt
+	;call  charCount
+	;push  eax
 	push  offset prompt
 	call  writeline
 
@@ -115,7 +115,7 @@ _iterate:
 	mov   num2, eax
 	push  eax
 	call  writeNumber
-	
+
 	inc   itr
 	 ; Restore EBX
 	pop  ebx

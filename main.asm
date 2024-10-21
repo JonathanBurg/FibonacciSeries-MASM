@@ -64,9 +64,9 @@ main ENDP
 exit PROC near
 _exit:
 	 ; Write an exit message for the user
-	push  offset exitmsg
-	call  charCount
-	push  eax
+	;push  offset exitmsg
+	;call  charCount
+	;push  eax
 	push  offset exitmsg
 	call  writeline
 
