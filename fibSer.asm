@@ -5,6 +5,7 @@
  ; 
  ; Revised: JB,  7 October, 2024 - Finally got a reliable way to convert a string to an int; Removed debug messages
  ; Revised: JB, 16 October, 2024 - Updated headers and added final statement to user
+ ; Revised: JB, 20 Octover, 2024 - Changed output formatting and added final line of output, added routine to print an ordinal number.
 
 .model  flat
 
@@ -28,15 +29,19 @@ extern	writeNum:	 near
 	error			byte	"Error, Invalid Number",10,0
 	msg				byte	10,"Fibonacci Series: ", 10, 0			; ends with string terminator (NULL or 0)
 	results			byte	10,"You typed: ", 0
-	final			byte	10,"The value of the ",0
-	finalb			byte	" term is ",0
-	stSuf			byte	"st",0
-	ndSuf			byte	"nd",0
-	rdSuf			byte	"rd",0
-	thSuf			byte	"th",0
+	termBuffer		byte	", ",0
 	input			dword	?
 	numCharsToRead	dword	1024
 	bufferAddr		dword	?
+
+	 ; Byte strings for final line of output
+	final			byte	10,10,"The value of the ",0				; First part of last line
+	finalb			byte	" term is ",0							; Third part of last line
+	 ; st, nd, rd work for numbers that dont have a 1 in the tens place
+	stOrd			byte	"st",0									; Ordinal suffix for numbers that end in "1"
+	ndOrd			byte	"nd",0									; Ordinal suffix for numbers that end in "2"
+	rdOrd			byte	"rd",0									; Ordinal suffix for numbers that end in "3"
+	thOrd			byte	"th",0									; Ordinal suffix for numbers that end in a "0", "4" - "9"
 
 
 .code
@@ -58,36 +63,37 @@ _getNumber:
  ; loop to make sure inputted number is less than 45
 top:
 	 ; Read user input
-	push  offset prompt
-	call  readInt
-	mov   var3, eax
+	push  offset prompt			; Prompt string for user input
+	call  readInt				; Get user input as an integer
+	mov   var3, eax				; Store input number in var3
 
 	 ; check that the number is less than 45
 	cmp   eax, 45
-	jg    invalidInput
+	jg    invalidInput			; Is EAX greater than 45?
 	cmp   eax, 0
-	jl    invalidInput
+	jl    invalidInput			; Is EAX less than 0?
 	jmp   done
 	
  ; Move to printing series
 done:
-	call  printSeries
-	pop   var2
-	;push  offset final
-	;call  charCount
-	;push  eax
+	call  printSeries			; Write the Fibonacci series
+	pop   var2					; Pop the final value into var2
+	
+	cmp   var3, 0				; Is the term limit less than or equal to zero?
+	jle   exit					; Jump to exit
+
+	 ; Print "The value of the <nth> term is <value>"
 	push  offset final
-	call  writeline
+	call  writeline				; Write first part of final outpu
 
 	push  var3
-	call  writeOrdinal
+	call  writeOrdinal			; Write series length with ordinal suffix
 
 	push  offset finalb
-	call  writeline
+	call  writeline				; Write third part of final output
 
 	push  var2
-	call  writeNumber
-	; Print "The value of the <nth> term is <value>"
+	call  writeNumber			; Write last number in series
 	
  ; Return to start
 exit:
@@ -133,13 +139,16 @@ print:
 
 	mov   eax, var1
 	push  eax
-	call  writeNumber			; Write the first "1"
+	call  writeNum				; Write the first "1"
 	cmp	  var3, 1				; Check if the limit on the series length is less then or equal to 1
 	jle	  exit					;		If so, jump to exit
 
+	push  offset termBuffer
+	call  writeline				; Write comma and space
+
 	mov	  eax, var2
 	push  eax
-	call  writeNumber			; Write the first "2"
+	call  writeNum				; Write the first "2"
 	cmp   var3, 2				; Check if the limit on the series length is less then or equal to 2
 	jle	  exit					;		If so, jump to exit
 
@@ -181,20 +190,23 @@ printSeries ENDP
 ;;******************************************************************;
 iterater PROC near
 _iterater:
-	push  ebx			; Store EBX
-	push  eax			; Store EAX
+	push  ebx					; Store EBX
+	push  eax					; Store EAX
+
+	push  offset termBuffer
+	call  writeline				; Write comma and space
 	 ; Try to print a number
 	mov   eax, var1
 	add   eax, var2
-	mov   ebx, var2		; Make sure numbers are not lost 
-	mov   var1, ebx		; when EAX is overwritten in
-	mov   var2, eax		; writeNumber
+	mov   ebx, var2				; Make sure numbers are not lost 
+	mov   var1, ebx				; when EAX is overwritten in
+	mov   var2, eax				; writeNumber
 	push  eax
-	call  writeNumber
+	call  writeNum
 	
 	inc   itr
-	pop   eax			; Restore EAX
-	pop   ebx			; Restore EBX
+	pop   eax					; Restore EAX
+	pop   ebx					; Restore EBX
 	 ; Return to printSeries
 	ret
 iterater ENDP
@@ -210,10 +222,10 @@ iterater ENDP
 ;;******************************************************************;
 writeOrdinal PROC near
 _writeOrdinal:
-	pop   edx			; Pop return address from the stack into EDX
-	pop   eax			; Pop the number into EAX
-	push  edx			; Restore return address to the stack
-	push  ecx			; Store ECX
+	pop   edx					; Pop return address from the stack into EDX
+	pop   eax					; Pop the number into EAX
+	push  edx					; Restore return address to the stack
+	push  ecx					; Store ECX
 
 	 ; Print the number
 	push  eax
@@ -246,22 +258,22 @@ _writeOrdinal:
 
  ; If last digit is a 1, add a "st"
 first:
-	push  offset stSuf
+	push  offset stOrd
 	call  writeline
 	jmp   endSuf
  ; If last digit is a 2, add a "nd"
 second:
-	push  offset ndSuf
+	push  offset ndOrd
 	call  writeline
 	jmp   endSuf
  ; If last digit is a 3, add a "rd"
 third:
-	push  offset rdSuf
+	push  offset rdOrd
 	call  writeline
 	jmp   endSuf
  ; If the last digit is not 1, 2, or 3, add a "th"
 fourth:
-	push  offset thSuf
+	push  offset thOrd
 	call  writeline
 	jmp   endSuf
  ; Time to return

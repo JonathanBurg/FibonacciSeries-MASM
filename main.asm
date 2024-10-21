@@ -8,6 +8,7 @@
 ; Revised: WWC 13 September 2024 Minor updates for Fall 2024 semester.
 ; Revised: JB,  7 October, 2024 - Added exit message
 ; Revised: JB, 16 October, 2024 - Added headers
+; Revised: JB, 20 October, 2024 - Modified output
 ; Register names:
 ; Register names are NOT case sensitive eax and EAX are the same register
 ; x86 uses 8 registers. EAX (Extended AX register has 32 bits while AX is the right most 16 bits of EAX). AL is the right-most 8 bits.

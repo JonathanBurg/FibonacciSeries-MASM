@@ -2,7 +2,9 @@
 ; Jonathan Burgener
 ; 27 September 2024
 ; Calculate and display the Fibonacci Series
-; Revised: JB, 30 September 2024, Added loops and reference to fibSer.asm
+; Revised: JB, 30 September, 2024 - Added loops and reference to fibSer.asm
+; Revised: JB, 16 October, 2024 - Added Headers
+; Revised: JB, 20 October, 2024 - Small modifications to code
 ;
 ; Register names:
 ; Register names are NOT case sensitive eax and EAX are the same register
@@ -26,6 +28,7 @@ extern	writeline:	 near
 extern	readline:	 near
 extern	charCount:	 near
 extern	writeNumber: near
+extern	writeNum:	 near
 extern	getNumber:	 near
 
 
@@ -37,6 +40,7 @@ itr				DD		?		; iterator to make sure only 45 terms are printed
 msg				byte	"Hello, World", 10, 0							; ends with line feed (10) and NULL
 prompt			byte	"Fibonacci Series (First 45 terms): ", 10, 0	; ends with string terminator (NULL or 0)
 endln			byte	"    ", 10, 0
+termBuffer		byte	", ",0
 results			byte	?		; buffer to print vars
 numCharsToRead	dword	1024
 bufferAddr		dword	?
@@ -70,12 +74,16 @@ _start:
 	 ; Print first two variables
 	mov   eax, num1
 	push  eax
-	call  writeNumber
+	call  writeNum				; Write num1 to console
+
+	push  offset termBuffer
+	call  writeline				; Write a comma and space to console
+
 	mov   eax, num2
 	push  eax
-	call  writeNumber
+	call  writeNum				; Write num2 to console
 
-	mov   itr, 2
+	mov   itr, 2				; Initialize index to 2
 
 	 ; loop to iterate fibonacci series
 top:
@@ -106,6 +114,10 @@ iterate PROC near
 _iterate:
 	 ; Save EBX
 	push  ebx
+
+	push  offset termBuffer
+	call  writeline				; Write comma and space to console
+
 	 ; Try print a number
 	mov   eax, num1
 	add   eax, num2
@@ -114,7 +126,7 @@ _iterate:
 	mov   num1, ebx
 	mov   num2, eax
 	push  eax
-	call  writeNumber
+	call  writeNum
 
 	inc   itr
 	 ; Restore EBX

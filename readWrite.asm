@@ -7,6 +7,7 @@
 ; Revised: WWC 13 September 2024 Minor updates for Fall 2024 semester.
 ; Revised: JB   7 October, 2024 - Added module for a new line
 ; Revised: JB  17 October, 2024 - Updated headers and added getInt and intStr
+; Revised: JB  20 October, 2024 - Added a version of writeNumber that ends with no space
 ; Register names:
 ; Register names are NOT case sensitive eax and EAX are the same register
 ; x86 uses 8 registers. EAX (Extended AX register has 32 bits while AX is
@@ -260,7 +261,7 @@ endNumLoop:
 	jmp   endNumLoop			; Do it one more time
 	
 numExit:
-	mov   dx, 0				; cannot load a literal into an addressed location
+	mov   dx, 0					; cannot load a literal into an addressed location
 	mov   [ebx], dx				; Add a space to the end of the number
 	mov   [ebx+1], esi			; Add the number to the output sring
 	;push  offset numberBuffer
@@ -274,6 +275,7 @@ numExit:
 	pop   ebx
 	ret
 writeNum ENDP
+
 
 ;;******************************************************************;
 ;; Call writeNumber(number)
@@ -358,22 +360,5 @@ endNumberLoop:
 	 ; Returns with the input value in EAX
 	ret
 readInt ENDP
-
-
-;;******************************************************************;
-;; Call intStr(number)
-;; Parameters:		number - number to parse to string
-;; Returns:			text - string value of number
-;; Registers Used:	EAX
-;; 
-;; Parses a number into a string
-;;******************************************************************;
-intStr PROC near
-_intStr:
-	pop   edx					; Store return address in EDX
-	pop   eax					; Store number in EAX
-	push  edx					; Restore return address to stack
-
-intStr ENDP
 
 END
